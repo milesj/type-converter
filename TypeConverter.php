@@ -11,6 +11,14 @@
 class TypeConverter {
 
 	/**
+	 * Should we append the root node into the array when going from XML -> array.
+	 *
+	 * @access public
+	 * @var boolean
+	 */
+	public static $rootInXml = true;
+
+	/**
 	 * Returns a string for the detected type.
 	 *
 	 * @access public
@@ -89,11 +97,10 @@ class TypeConverter {
 	 *
 	 * @access public
 	 * @param mixed $resource
-	 * @param boolean $xmlRoot - To include the XML root node
 	 * @return array
 	 * @static
 	 */
-	public static function toArray($resource, $xmlRoot = false) {
+	public static function toArray($resource) {
 		if (self::isArray($resource)) {
 			return $resource;
 
@@ -104,7 +111,7 @@ class TypeConverter {
 			return json_decode($resource, true);
 
 		} else if ($xml = self::isXml($resource)) {
-			return self::xmlToArray($xml, $xmlRoot);
+			return self::xmlToArray($xml);
 		}
 
 		return $resource;
@@ -115,17 +122,16 @@ class TypeConverter {
 	 *
 	 * @access public
 	 * @param mixed $resource
-	 * @param boolean $xmlRoot - To include the XML root node
 	 * @return json
 	 * @static
 	 */
-	public static function toJson($resource, $xmlRoot = false) {
+	public static function toJson($resource) {
 		if (self::isJson($resource)) {
 			return $resource;
 
 		} else {
 			if ($xml = self::isXml($resource)) {
-				$resource = self::xmlToArray($xml, $xmlRoot);
+				$resource = self::xmlToArray($xml);
 			}
 
 			return json_encode($resource);
@@ -299,10 +305,9 @@ class TypeConverter {
 	 *
 	 * @access public
 	 * @param object $xml
-	 * @param boolean $root - Should we append the root node into the array
 	 * @return array
 	 */
-	public static function xmlToArray($xml, $root = true) {
+	public static function xmlToArray($xml) {
 		if (!$xml->children()) {
 			return (string)$xml;
 		}
@@ -342,7 +347,7 @@ class TypeConverter {
 			}
 		}
 
-		if ($root) {
+		if (TypeConverter::$rootInXml) {
 			return array($xml->getName() => $array);
 		} else {
 			return $array;
