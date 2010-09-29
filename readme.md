@@ -1,7 +1,7 @@
 # Type Converter v1.0 #
 
 A class that handles the detection and conversion of certain resource formats / content types into other formats.
-The current formats are supported: XML (RSS, Atom), JSON, Array, Object
+The current formats are supported: XML (RSS, Atom), JSON, Array, Object, Serialized
 
 ## Requirements ##
 
@@ -16,6 +16,7 @@ The class is pretty straight forward. If you want to convert something to anothe
 	$array = TypeConverter::toArray($resource);
 	$json = TypeConverter::toJson($resource);
 	$xml = TypeConverter::toXml($resource);
+	$ser = TypeConverter::toSerialize($resource);
 
 If you want to detect what resource type it is, use the "is" methods.
 If you use the "to" methods above, it does automatic "is" detection.
@@ -24,6 +25,7 @@ If you use the "to" methods above, it does automatic "is" detection.
 	TypeConverter::isArray($resource);
 	TypeConverter::isJson($resource);
 	TypeConverter::isXml($resource);
+	TypeConverter::isSerialized($resource);
 
 If you want a string representation of what a resource is, use the default is() method.
 

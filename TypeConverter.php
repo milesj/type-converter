@@ -1,9 +1,9 @@
 <?php
 /**
  * A class that handles the detection and conversion of certain resource formats / content types into other formats.
- * The current formats are supported: XML (RSS, Atom), JSON, Array, Object
+ * The current formats are supported: XML (RSS, Atom), JSON, Array, Object, Serialized
  *
- * @author		Miles Johnson - www.milesj.me
+ * @author		Miles Johnson - http://milesj.me
  * @copyright	Copyright 2006-2010, Miles Johnson, Inc.
  * @license		http://opensource.org/licenses/mit-license.php - Licensed under The MIT License
  */
@@ -77,6 +77,18 @@ class TypeConverter {
 	 */
 	public static function isObject($data) {
 		return is_object($data);
+	}
+
+	/**
+	 * Check to see if data passed has been serialized.
+	 *
+	 * @access public
+	 * @param mixed $data
+	 * @return boolean
+	 * @static
+	 */
+	public static function isSerialized($data) {
+		return (@unserialize($data) !== false); 
 	}
 
 	/**
@@ -163,6 +175,22 @@ class TypeConverter {
 		}
 
 		return $resource;
+	}
+
+	/**
+	 * Transforms a resource into a serialized form.
+	 *
+	 * @access public
+	 * @param mixed $resource
+	 * @return string
+	 * @static
+	 */
+	public static function toSerialize($resource) {
+		if (!self::isArray($resource) || !self::isObject($resource)) {
+			$resource = self::toArray($resource);
+		}
+
+		return serialize($resource);
 	}
 
 	/**
