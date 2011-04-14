@@ -1,7 +1,7 @@
 <?php
 /**
  * A class that handles the detection and conversion of certain resource formats / content types into other formats.
- * The current formats are supported: XML (RSS, Atom), JSON, Array, Object, Serialized
+ * The current formats are supported: XML, JSON, Array, Object, Serialized
  *
  * @author		Miles Johnson - http://milesj.me
  * @copyright	Copyright 2006-2010, Miles Johnson, Inc.
@@ -11,12 +11,32 @@
 class TypeConverter {
 
 	/**
-	 * Should we append the root node into the array when going from XML -> array.
+	 * Current version.
 	 *
 	 * @access public
-	 * @var boolean
+	 * @var string
 	 */
-	public static $rootInXml = true;
+	public static $version = '1.0';
+	
+	/**
+	 * Disregard XML attributes and only return the value.
+	 */
+	const XML_NONE = 0;
+
+	/**
+	 * Merge attributes and the value into a single dimension; the values key will be "value".
+	 */
+	const XML_MERGE = 1;
+
+	/**
+	 * Group the attributes into a key "attributes" and the value into a key of "value".
+	 */
+	const XML_GROUP = 2;
+
+	/**
+	 * Attributes will only be returned.
+	 */
+	const XML_OVERWRITE = 3;
 
 	/**
 	 * Returns a string for the detected type.
@@ -35,6 +55,9 @@ class TypeConverter {
 
 		} else if (self::isJson($data)) {
 			return 'json';
+
+		} else if (self::isSerialized($data)) {
+			return 'serialized';
 
 		} else if (self::isXml($data)) {
 			return 'xml';
@@ -88,11 +111,12 @@ class TypeConverter {
 	 * @static
 	 */
 	public static function isSerialized($data) {
-		return (@unserialize($data) !== false); 
+		$ser = @unserialize($data);
+		return ($ser !== false) ? $ser : false;
 	}
 
 	/**
-	 * Check to see if data passed is an xml document.
+	 * Check to see if data passed is an XML document.
 	 *
 	 * @access public
 	 * @param mixed $data
@@ -101,7 +125,7 @@ class TypeConverter {
 	 */
 	public static function isXml($data) {
 		$xml = @simplexml_load_string($data);
-		return ($xml === null) ? false : $xml;
+		return ($xml instanceof SimpleXmlElement) ? $xml : false;
 	}
 
 	/**
@@ -122,8 +146,11 @@ class TypeConverter {
 		} else if (self::isJson($resource)) {
 			return json_decode($resource, true);
 
+		} else if ($ser = self::isSerialized($resource)) {
+			return self::toArray($ser);
+
 		} else if ($xml = self::isXml($resource)) {
-			return self::xmlToArray($xml);
+			return self::xmlToArray($xml, $format);
 		}
 
 		return $resource;
@@ -144,6 +171,9 @@ class TypeConverter {
 		} else {
 			if ($xml = self::isXml($resource)) {
 				$resource = self::xmlToArray($xml);
+
+			} else if ($ser = self::isSerialized($resource)) {
+				$resource = $ser;
 			}
 
 			return json_encode($resource);
@@ -170,6 +200,9 @@ class TypeConverter {
 		} else if (self::isJson($resource)) {
 			return json_decode($resource);
 
+		} else if ($ser = self::isSerialized($resource)) {
+			return self::toObject($ser);
+
 		} else if ($xml = self::isXml($resource)) {
 			return $xml;
 		}
@@ -186,7 +219,7 @@ class TypeConverter {
 	 * @static
 	 */
 	public static function toSerialize($resource) {
-		if (!self::isArray($resource) || !self::isObject($resource)) {
+		if (!self::isArray($resource)) {
 			$resource = self::toArray($resource);
 		}
 
@@ -198,11 +231,10 @@ class TypeConverter {
 	 *
 	 * @access public
 	 * @param mixed $resource
-	 * @param boolean $asXml - Return as straight XML and not an object
 	 * @return object
 	 * @static
 	 */
-	public static function toXml($resource, $asXml = true) {
+	public static function toXml($resource) {
 		if (self::isXml($resource)) {
 			return $resource;
 		}
@@ -225,11 +257,7 @@ class TypeConverter {
 			$xml = simplexml_load_string('<?xml version="1.0" encoding="utf-8" ?><'. $root .'></'. $root .'>');
 			$response = self::buildXml($xml, $data);
 
-			if ($asXml) {
-				return $response->asXML();
-			}
-
-			return $response;
+			return $response->asXML();
 		}
 
 		return $resource;
@@ -288,7 +316,7 @@ class TypeConverter {
 	public static function buildXml(&$xml, $array) {
 		if (is_array($array)) {
 			foreach ($array as $element => $value) {
-
+				
 				// Regular element
 				if (is_string($value)) {
 					$xml->addChild($element, $value);
@@ -329,57 +357,68 @@ class TypeConverter {
 	}
 
 	/**
-	 * Convert a SimpleXML object into an array (last resort).
+	 * Convert a SimpleXML object into an array.
 	 *
 	 * @access public
 	 * @param object $xml
+	 * @param int $format
 	 * @return array
 	 */
-	public static function xmlToArray($xml) {
-		if (!$xml->children()) {
+	public static function xmlToArray($xml, $format = self::XML_MERGE) {
+		if (is_string($xml)) {
+			$xml = @simplexml_load_string($xml);
+		}
+
+		if ($xml->count() <= 0) {
 			return (string)$xml;
 		}
 
 		$array = array();
+
 		foreach ($xml->children() as $element => $node) {
-			$totalElement = count($xml->{$element});
+			$data = array();
 
 			if (!isset($array[$element])) {
 				$array[$element] = "";
 			}
 
-			// Has attributes
-			if ($attributes = $node->attributes()) {
-				$data = array(
-					'attributes' => array(),
-					'value' => (count($node) > 0) ? self::xmlToArray($node, false) : (string)$node
-				);
+			if (!$node->attributes() || $format == self::XML_NONE) {
+				$data = self::xmlToArray($node, $format);
 
-				foreach ($attributes as $attr => $value) {
-					$data['attributes'][$attr] = (string)$value;
-				}
-
-				if ($totalElement > 1) {
-					$array[$element][] = $data;
-				} else {
-					$array[$element] = $data;
-				}
-
-			// Just a value
 			} else {
-				if ($totalElement > 1) {
-					$array[$element][] = self::xmlToArray($node, false);
-				} else {
-					$array[$element] = self::xmlToArray($node, false);
+				switch ($format) {
+					case self::XML_GROUP:
+						$data = array(
+							'attributes' => array(),
+							'value' => (string)$node
+						);
+
+						foreach ($node->attributes() as $attr => $value) {
+							$data['attributes'][$attr] = (string)$value;
+						}
+					break;
+
+					case self::XML_MERGE:
+					case self::XML_OVERWRITE:
+						foreach ($node->attributes() as $attr => $value) {
+							$data[$attr] = (string)$value;
+						}
+
+						if ($format == self::XML_MERGE) {
+							$data['value'] = (string)$node;
+						}
+					break;
 				}
+			}
+
+			if (count($xml->{$element}) > 1) {
+				$array[$element][] = $data;
+			} else {
+				$array[$element] = $data;
 			}
 		}
 
-		if (TypeConverter::$rootInXml) {
-			return array($xml->getName() => $array);
-		} else {
-			return $array;
-		}
+		return $array;
 	}
 
 }

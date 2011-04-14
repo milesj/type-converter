@@ -1,7 +1,7 @@
 # Type Converter v1.0 #
 
 A class that handles the detection and conversion of certain resource formats / content types into other formats.
-The current formats are supported: XML (RSS, Atom), JSON, Array, Object, Serialized
+The current formats are supported: XML, JSON, Array, Object, Serialized
 
 ## Requirements ##
 
@@ -31,3 +31,14 @@ If you want a string representation of what a resource is, use the default is() 
 
 	$resource = array();
 	TypeConverter::is($resource); // array
+
+Finally, you can convert an XML document into an array (must have SimpleXML).
+
+	$array = TypeConverter::xmlToArray($xml, TypeConverter::XML_MERGE);
+
+When using xmlToArray(), you can define the format in which the node attributes and values are presented. The following constants are available.
+
+	XML_NONE  - Disregard XML attributes and only return the value.
+	XML_MERGE - Merge attributes and the value into a single dimension; the values key will be "value".
+	XML_GROUP - Group the attributes into a key of "attributes" and the value into a key of "value".
+	XML_OVERWRITE - Attributes will only be returned.
