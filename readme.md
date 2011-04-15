@@ -1,4 +1,4 @@
-# Type Converter v1.0 #
+# Type Converter v1.1 #
 
 A class that handles the detection and conversion of certain resource formats / content types into other formats.
 The current formats are supported: XML, JSON, Array, Object, Serialized

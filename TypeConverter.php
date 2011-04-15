@@ -16,7 +16,7 @@ class TypeConverter {
 	 * @access public
 	 * @var string
 	 */
-	public static $version = '1.0';
+	public static $version = '1.1';
 	
 	/**
 	 * Disregard XML attributes and only return the value.
@@ -150,7 +150,7 @@ class TypeConverter {
 			return self::toArray($ser);
 
 		} else if ($xml = self::isXml($resource)) {
-			return self::xmlToArray($xml, $format);
+			return self::xmlToArray($xml);
 		}
 
 		return $resource;
@@ -231,31 +231,20 @@ class TypeConverter {
 	 *
 	 * @access public
 	 * @param mixed $resource
-	 * @return object
+	 * @param string $root
+	 * @return string
 	 * @static
 	 */
-	public static function toXml($resource) {
+	public static function toXml($resource, $root = 'root') {
 		if (self::isXml($resource)) {
 			return $resource;
 		}
 
-		$resource = self::toArray($resource);
+		$array = self::toArray($resource);
 
-		if (!empty($resource)) {
-			$root = 'root';
-			$data = $resource;
-
-			if (count($resource) == 1) {
-				$keys = array_keys($resource);
-
-				if (is_array($resource[$keys[0]])) {
-					$root = $keys[0];
-					$data = $resource[$keys[0]];
-				}
-			}
-
-			$xml = simplexml_load_string('<?xml version="1.0" encoding="utf-8" ?><'. $root .'></'. $root .'>');
-			$response = self::buildXml($xml, $data);
+		if (!empty($array)) {
+			$xml = simplexml_load_string('<?xml version="1.0" encoding="utf-8"?><'. $root .'></'. $root .'>');
+			$response = self::buildXml($xml, $array);
 
 			return $response->asXML();
 		}
@@ -315,40 +304,45 @@ class TypeConverter {
 	 */
 	public static function buildXml(&$xml, $array) {
 		if (is_array($array)) {
-			foreach ($array as $element => $value) {
-				
-				// Regular element
-				if (is_string($value)) {
-					$xml->addChild($element, $value);
+			foreach ($array as $key => $value) {
+				if (is_array($value)) {
 
-				// Element has child elements or attributes
-				} else if (is_array($value)) {
-
-					// Multiple elements with same name
+					// Multiple nodes of the same name
 					if (isset($value[0])) {
-						foreach ($value as $subElement) {
-							if (is_array($subElement)) {
-								self::buildXml($xml, array($element => $subElement));
+						foreach ($value as $kValue) {
+							if (is_array($kValue)) {
+								self::buildXml($xml, array($key => $kValue));
 							} else {
-								$xml->addChild($element, $subElement);
+								$xml->addChild($key, $kValue);
 							}
 						}
 
-					// Element with attributes
-					} else if (isset($value['attributes']) && isset($value['value'])) {
-						$node = $xml->addChild($element, $value['value']);
+					// XML_GROUP
+					} else if (isset($value['attributes'])) {
+						$node = $xml->addChild($key, $value['value']);
 
-						foreach ($value['attributes'] as $attr => $attrValue) {
-							$node->addAttribute($attr, $attrValue);
+						foreach ($value['attributes'] as $aKey => $aValue) {
+							$node->addAttribute($aKey, $aValue);
 						}
 
-						self::buildXml($node, $value['value']);
-
-					// Regular element with children
+					// XML_MERGE
+					// XML_OVERWRITE
 					} else {
-						$node = $xml->addChild($element);
-						self::buildXml($node, $value);
+						$node = $xml->addChild($key, (isset($value['value']) ? $value['value'] : ''));
+						unset($value['value']);
+
+						foreach ($value as $aKey => $aValue) {
+							if (is_array($aValue)) {
+								self::buildXml($node, array($aKey => $aValue));
+							} else {
+								$node->addAttribute($aKey, $aValue);
+							}
+						}
 					}
+
+				// XML_NONE
+				} else {
+					$xml->addChild($key, $value);
 				}
 			}
 		}
@@ -364,7 +358,7 @@ class TypeConverter {
 	 * @param int $format
 	 * @return array
 	 */
-	public static function xmlToArray($xml, $format = self::XML_MERGE) {
+	public static function xmlToArray($xml, $format = self::XML_GROUP) {
 		if (is_string($xml)) {
 			$xml = @simplexml_load_string($xml);
 		}
