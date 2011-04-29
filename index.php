@@ -32,6 +32,7 @@ $object	= new stdClass();
 $object->is = 'object';
 
 // Determine the type
+debug('TypeConverter::is()');
 debug(TypeConverter::is($array));
 debug(TypeConverter::is($object));
 debug(TypeConverter::is($json));
@@ -40,7 +41,8 @@ debug(TypeConverter::is($xml));
 
 // Validate against all types
 foreach (array('isArray', 'isObject', 'isJson', 'isSerialized', 'isXml') as $method) {
-	debug($method);
+	debug('TypeConverter::'. $method .'()');
+	
 	dump('array', TypeConverter::$method($array));
 	dump('object', TypeConverter::$method($object));
 	dump('json', TypeConverter::$method($json));
@@ -50,10 +52,41 @@ foreach (array('isArray', 'isObject', 'isJson', 'isSerialized', 'isXml') as $met
 
 // Convert all the types
 foreach (array('toArray', 'toObject', 'toJson', 'toSerialize', 'toXml') as $method) {
-	debug($method);
-	debug(TypeConverter::$method($array));
-	debug(TypeConverter::$method($object));
-	debug(TypeConverter::$method($json));
-	debug(TypeConverter::$method($ser));
-	debug(TypeConverter::$method($xml));
+	debug('TypeConverter::'. $method .'()');
+
+	if ($method == 'toXml') {
+		debug(htmlentities(TypeConverter::toXml($array)));
+		debug(htmlentities(TypeConverter::toXml($object)));
+		debug(htmlentities(TypeConverter::toXml($json)));
+		debug(htmlentities(TypeConverter::toXml($ser)));
+		debug(htmlentities(TypeConverter::toXml($xml)));
+	} else {
+		debug(TypeConverter::$method($array));
+		debug(TypeConverter::$method($object));
+		debug(TypeConverter::$method($json));
+		debug(TypeConverter::$method($ser));
+		debug(TypeConverter::$method($xml));
+	}
+}
+
+// Convert a complicated XML file to an array
+$xml = file_get_contents('test.xml');
+
+foreach (array('none', 'merge', 'group', 'overwrite') as $format) {
+	debug('TypeConverter::xmlToArray('. $format .')');
+	
+	switch ($format) {
+		case 'none':
+			debug(TypeConverter::xmlToArray($xml, TypeConverter::XML_NONE));
+		break;
+		case 'merge':
+			debug(TypeConverter::xmlToArray($xml, TypeConverter::XML_MERGE));
+		break;
+		case 'group':
+			debug(TypeConverter::xmlToArray($xml, TypeConverter::XML_GROUP));
+		break;
+		case 'overwrite':
+			debug(TypeConverter::xmlToArray($xml, TypeConverter::XML_OVERWRITE));
+		break;
+	}
 }
