@@ -306,66 +306,65 @@ class TypeConverter {
 	public static function buildXml(&$xml, $array) {
 		if (is_array($array)) {
 			foreach ($array as $key => $value) {
-				if (is_array($value)) {
+				// XML_NONE
+				if (!is_array($value)) {
+					$xml->addChild($key, $value);
+					continue;
+				}
 
-					// Multiple nodes of the same name
-					if (isset($value[0])) {
-						foreach ($value as $kValue) {
-							if (is_array($kValue)) {
-								self::buildXml($xml, array($key => $kValue));
-							} else {
-								$xml->addChild($key, $kValue);
-							}
-						}
-
-					// XML_GROUP
-					} else if (isset($value['attributes'])) {
-						if (is_array($value['value'])) {
-							$node = $xml->addChild($key);
-							self::buildXml($node, $value['value']);
+				// Multiple nodes of the same name
+				if (isset($value[0])) {
+					foreach ($value as $kValue) {
+						if (is_array($kValue)) {
+							self::buildXml($xml, array($key => $kValue));
 						} else {
-							$node = $xml->addChild($key, $value['value']);
+							$xml->addChild($key, $kValue);
 						}
+					}
 
-						if (!empty($value['attributes'])) {
-							foreach ($value['attributes'] as $aKey => $aValue) {
-								$node->addAttribute($aKey, $aValue);
-							}
-						}
-
-					// XML_MERGE
-					} else if (isset($value['value'])) {
-						$node = $xml->addChild($key, $value['value']);
-						unset($value['value']);
-
-						if (!empty($value)) {
-							foreach ($value as $aKey => $aValue) {
-								if (is_array($aValue)) {
-									self::buildXml($node, array($aKey => $aValue));
-								} else {
-									$node->addAttribute($aKey, $aValue);
-								}
-							}
-						}
-
-					// XML_OVERWRITE
-					} else {
+				// XML_GROUP
+				} else if (isset($value['attributes'])) {
+					if (is_array($value['value'])) {
 						$node = $xml->addChild($key);
+						self::buildXml($node, $value['value']);
+					} else {
+						$node = $xml->addChild($key, $value['value']);
+					}
 
-						if (!empty($value)) {
-							foreach ($value as $aKey => $aValue) {
-								if (is_array($aValue)) {
-									self::buildXml($node, array($aKey => $aValue));
-								} else {
-									$node->addChild($aKey, $aValue);
-								}
+					if (!empty($value['attributes'])) {
+						foreach ($value['attributes'] as $aKey => $aValue) {
+							$node->addAttribute($aKey, $aValue);
+						}
+					}
+
+				// XML_MERGE
+				} else if (isset($value['value'])) {
+					$node = $xml->addChild($key, $value['value']);
+					unset($value['value']);
+
+					if (!empty($value)) {
+						foreach ($value as $aKey => $aValue) {
+							if (is_array($aValue)) {
+								self::buildXml($node, array($aKey => $aValue));
+							} else {
+								$node->addAttribute($aKey, $aValue);
 							}
 						}
 					}
 
-				// XML_NONE
+				// XML_OVERWRITE
 				} else {
-					$xml->addChild($key, $value);
+					$node = $xml->addChild($key);
+
+					if (!empty($value)) {
+						foreach ($value as $aKey => $aValue) {
+							if (is_array($aValue)) {
+								self::buildXml($node, array($aKey => $aValue));
+							} else {
+								$node->addChild($aKey, $aValue);
+							}
+						}
+					}
 				}
 			}
 		}
