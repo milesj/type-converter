@@ -7,7 +7,7 @@
 	<vitality>20</vitality>
 	<dexterity evade="5%" block="10%" />
 	<agility turnRate="1.25" acceleration="5" />
-	<armors>
+	<armors items="6">
 		<armor defense="15">Helmet</armor>
 		<armor defense="25">Shoulder Plates</armor>
 		<armor defense="50">Breast Plate</armor>
@@ -15,7 +15,7 @@
 		<armor defense="10">Gloves</armor>
 		<armor defense="25">Shield</armor>
 	</armors>
-	<weapons>
+	<weapons items="6">
 		<sword damage="25">Broadsword</sword>
 		<sword damage="30">Longsword</sword>
 		<axe damage="20">Heavy Axe</axe>

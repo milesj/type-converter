@@ -17,7 +17,7 @@ class TypeConverter {
 	 * @access public
 	 * @var string
 	 */
-	public static $version = '1.1';
+	public static $version = '1.1.1';
 	
 	/**
 	 * Disregard XML attributes and only return the value.
@@ -320,23 +320,45 @@ class TypeConverter {
 
 					// XML_GROUP
 					} else if (isset($value['attributes'])) {
-						$node = $xml->addChild($key, $value['value']);
+						if (is_array($value['value'])) {
+							$node = $xml->addChild($key);
+							self::buildXml($node, $value['value']);
+						} else {
+							$node = $xml->addChild($key, $value['value']);
+						}
 
-						foreach ($value['attributes'] as $aKey => $aValue) {
-							$node->addAttribute($aKey, $aValue);
+						if (!empty($value['attributes'])) {
+							foreach ($value['attributes'] as $aKey => $aValue) {
+								$node->addAttribute($aKey, $aValue);
+							}
 						}
 
 					// XML_MERGE
-					// XML_OVERWRITE
-					} else {
-						$node = $xml->addChild($key, (isset($value['value']) ? $value['value'] : ''));
+					} else if (isset($value['value'])) {
+						$node = $xml->addChild($key, $value['value']);
 						unset($value['value']);
 
-						foreach ($value as $aKey => $aValue) {
-							if (is_array($aValue)) {
-								self::buildXml($node, array($aKey => $aValue));
-							} else {
-								$node->addAttribute($aKey, $aValue);
+						if (!empty($value)) {
+							foreach ($value as $aKey => $aValue) {
+								if (is_array($aValue)) {
+									self::buildXml($node, array($aKey => $aValue));
+								} else {
+									$node->addAttribute($aKey, $aValue);
+								}
+							}
+						}
+
+					// XML_OVERWRITE
+					} else {
+						$node = $xml->addChild($key);
+
+						if (!empty($value)) {
+							foreach ($value as $aKey => $aValue) {
+								if (is_array($aValue)) {
+									self::buildXml($node, array($aKey => $aValue));
+								} else {
+									$node->addChild($aKey, $aValue);
+								}
 							}
 						}
 					}
@@ -388,6 +410,10 @@ class TypeConverter {
 							'value' => (string)$node
 						);
 
+						if ($node->count() > 0) {
+							$data['value'] = self::xmlToArray($node, $format);
+						}
+
 						foreach ($node->attributes() as $attr => $value) {
 							$data['attributes'][$attr] = (string)$value;
 						}
@@ -395,12 +421,16 @@ class TypeConverter {
 
 					case self::XML_MERGE:
 					case self::XML_OVERWRITE:
-						foreach ($node->attributes() as $attr => $value) {
-							$data[$attr] = (string)$value;
+						if ($format == self::XML_MERGE) {
+							if ($node->count() > 0) {
+								$data = $data + self::xmlToArray($node, $format);
+							} else {
+								$data['value'] = (string)$node;
+							}
 						}
 
-						if ($format == self::XML_MERGE) {
-							$data['value'] = (string)$node;
+						foreach ($node->attributes() as $attr => $value) {
+							$data[$attr] = (string)$value;
 						}
 					break;
 				}
