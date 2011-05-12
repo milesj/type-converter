@@ -3,10 +3,10 @@
  * A class that handles the detection and conversion of certain resource formats / content types into other formats.
  * The current formats are supported: XML, JSON, Array, Object, Serialized
  *
- * @author		Miles Johnson - http://milesj.me
- * @copyright	Copyright 2006-2010, Miles Johnson, Inc.
- * @license		http://opensource.org/licenses/mit-license.php - Licensed under The MIT License
- * @link		http://milesj.me/resources/script/type-converter
+ * @author      Miles Johnson - http://milesj.me
+ * @copyright   Copyright 2006-2011, Miles Johnson, Inc.
+ * @license     http://opensource.org/licenses/mit-license.php - Licensed under The MIT License
+ * @link        http://milesj.me/code/php/type-converter
  */
 
 class TypeConverter {
@@ -17,7 +17,7 @@ class TypeConverter {
 	 * @access public
 	 * @var string
 	 */
-	public static $version = '1.1.1';
+	public static $version = '1.2';
 	
 	/**
 	 * Disregard XML attributes and only return the value.
