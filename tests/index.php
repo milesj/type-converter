@@ -21,7 +21,7 @@ function dump($key, $value) {
 }
 
 // Include class
-include_once 'type_converter/TypeConverter.php';
+include_once '../type_converter/TypeConverter.php';
 
 // Create variables
 $array	= array('is' => 'array');

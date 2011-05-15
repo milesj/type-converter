@@ -6,7 +6,7 @@ The current formats are supported: XML, JSON, Array, Object, Serialized
 ## Requirements ##
 
 * PHP 5.2.x, 5.3.x
-* SimpleXML - http://php.net/manual/en/book.simplexml.php
+* SimpleXML - http://php.net/manual/book.simplexml.php
 
 ## Documentation ##
 
