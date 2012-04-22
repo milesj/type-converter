@@ -20,7 +20,7 @@ class TypeConverter {
 	 * @var string
 	 */
 	public static $version = '1.2';
-	
+
 	/**
 	 * Disregard XML attributes and only return the value.
 	 */
@@ -170,19 +170,16 @@ class TypeConverter {
 	public static function toJson($resource) {
 		if (self::isJson($resource)) {
 			return $resource;
-
-		} else {
-			if ($xml = self::isXml($resource)) {
-				$resource = self::xmlToArray($xml);
-
-			} else if ($ser = self::isSerialized($resource)) {
-				$resource = $ser;
-			}
-
-			return json_encode($resource);
 		}
 
-		return $resource;
+		if ($xml = self::isXml($resource)) {
+			$resource = self::xmlToArray($xml);
+
+		} else if ($ser = self::isSerialized($resource)) {
+			$resource = $ser;
+		}
+
+		return json_encode($resource);
 	}
 
 	/**
@@ -445,6 +442,58 @@ class TypeConverter {
 		}
 
 		return $array;
+	}
+
+	/**
+	 * Encode a resource object for UTF-8.
+	 *
+	 * @access public
+	 * @param mixed $data
+	 * @return array|string
+	 * @static
+	 */
+	public static function utf8Encode($data) {
+		if (is_string($data)) {
+			return utf8_encode($data);
+
+		} else if (is_array($data)) {
+			foreach ($data as $key => $value) {
+				$data[utf8_encode($key)] = self::utf8Encode($value);
+			}
+
+		} else if (is_object($data)) {
+			foreach ($data as $key => $value) {
+				$data->{$key} = self::utf8Encode($value);
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Decode a resource object for UTF-8.
+	 *
+	 * @access public
+	 * @param mixed $data
+	 * @return array|string
+	 * @static
+	 */
+	public static function utf8Decode($data) {
+		if (is_string($data)) {
+			return utf8_decode($data);
+
+		} else if (is_array($data)) {
+			foreach ($data as $key => $value) {
+				$data[utf8_decode($key)] = self::utf8Decode($value);
+			}
+
+		} else if (is_object($data)) {
+			foreach ($data as $key => $value) {
+				$data->{$key} = self::utf8Decode($value);
+			}
+		}
+
+		return $data;
 	}
 
 }

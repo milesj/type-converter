@@ -31,6 +31,16 @@ $json	= json_encode(array('is' => 'json'));
 $ser	= serialize(array('is' => 'serialize'));
 $xml	= '<?xml version="1.0" encoding="utf-8"?><root><is>xml</is></root>';
 $object	= new stdClass();
+?>
+
+<!DOCTYPE html>
+<head>
+	<title>TypeConverter</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
+<body>
+
+<?php
 $object->is = 'object';
 
 // Determine the type
@@ -44,7 +54,7 @@ debug(TypeConverter::is($xml));
 // Validate against all types
 foreach (array('isArray', 'isObject', 'isJson', 'isSerialized', 'isXml') as $method) {
 	debug('TypeConverter::'. $method .'()');
-	
+
 	dump('array', TypeConverter::$method($array));
 	dump('object', TypeConverter::$method($object));
 	dump('json', TypeConverter::$method($json));
@@ -76,7 +86,7 @@ $xml = file_get_contents('test.xml');
 
 foreach (array('none', 'merge', 'group', 'overwrite') as $format) {
 	debug('TypeConverter::xmlToArray('. $format .')');
-	
+
 	switch ($format) {
 		case 'none':
 			debug(TypeConverter::xmlToArray($xml, TypeConverter::XML_NONE));
@@ -92,3 +102,13 @@ foreach (array('none', 'merge', 'group', 'overwrite') as $format) {
 		break;
 	}
 }
+
+// Convert UTF-8
+$json = array('j\'étais', 'joué', '中文', 'éáíúűóüöäÍÓ');
+
+debug($json);
+debug(TypeConverter::utf8Encode($json));
+debug(TypeConverter::utf8Decode(TypeConverter::utf8Encode($json))); ?>
+
+</body>
+</html>
