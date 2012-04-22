@@ -1,4 +1,4 @@
-# Type Converter v1.2 #
+# Type Converter v1.3 #
 
 A class that handles the detection and conversion of certain resource formats / content types into other formats.
 The current formats are supported: XML, JSON, Array, Object, Serialized
@@ -42,3 +42,8 @@ When using xmlToArray(), you can define the format in which the node attributes 
 	XML_MERGE - Merge attributes and the value into a single dimension; the values key will be "value".
 	XML_GROUP - Group the attributes into a key of "attributes" and the value into a key of "value".
 	XML_OVERWRITE - Attributes will only be returned.
+
+Be sure to set the content type when supporting UTF-8.
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
