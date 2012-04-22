@@ -384,7 +384,7 @@ class TypeConverter {
 			$xml = @simplexml_load_string($xml);
 		}
 
-		if ($xml->count() <= 0) {
+		if (count($xml->children()) <= 0) {
 			return (string)$xml;
 		}
 
@@ -408,7 +408,7 @@ class TypeConverter {
 							'value' => (string)$node
 						);
 
-						if ($node->count() > 0) {
+						if (count($node->children()) > 0) {
 							$data['value'] = self::xmlToArray($node, $format);
 						}
 
@@ -420,7 +420,7 @@ class TypeConverter {
 					case self::XML_MERGE:
 					case self::XML_OVERWRITE:
 						if ($format == self::XML_MERGE) {
-							if ($node->count() > 0) {
+							if (count($node->children()) > 0) {
 								$data = $data + self::xmlToArray($node, $format);
 							} else {
 								$data['value'] = (string)$node;
