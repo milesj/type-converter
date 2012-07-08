@@ -1,0 +1,23 @@
+{
+	"name": "mjohnson/type_converter",
+	"type": "library",
+	"description": "Converts one resource to another (XML, JSON, Object, Array, Serialization).",
+	"keywords": ["type", "converter"],
+	"homepage": "http://milesj.me/code/php/type-converter",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Miles Johnson",
+			"homepage": "http://milesj.me"
+		}
+	],
+	"require": {
+		"php": ">=5.2"
+	},
+	"support": {
+		"source": "https://github.com/milesj/php-type_converter"
+	},
+	"autoload": {
+		"psr-0": { "TypeConverter": "type_converter" }
+	}
+}
