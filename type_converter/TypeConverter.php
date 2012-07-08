@@ -5,7 +5,7 @@
  * A class that handles the detection and conversion of certain resource formats / content types into other formats.
  * The current formats are supported: XML, JSON, Array, Object, Serialized
  *
- * @version		1.3
+ * @version		1.4
  * @author      Miles Johnson - http://milesj.me
  * @copyright   Copyright 2006-2011, Miles Johnson, Inc.
  * @license     http://opensource.org/licenses/mit-license.php - Licensed under The MIT License
@@ -157,7 +157,7 @@ class TypeConverter {
 	 *
 	 * @access public
 	 * @param mixed $resource
-	 * @return json
+	 * @return string (json)
 	 * @static
 	 */
 	public static function toJson($resource) {
@@ -225,7 +225,7 @@ class TypeConverter {
 	 * @access public
 	 * @param mixed $resource
 	 * @param string $root
-	 * @return string
+	 * @return string (xml)
 	 * @static
 	 */
 	public static function toXml($resource, $root = 'root') {
@@ -390,7 +390,7 @@ class TypeConverter {
 				$array[$element] = "";
 			}
 
-			if (!$node->attributes() || $format == self::XML_NONE) {
+			if (!$node->attributes() || $format === self::XML_NONE) {
 				$data = self::xmlToArray($node, $format);
 
 			} else {
@@ -412,7 +412,7 @@ class TypeConverter {
 
 					case self::XML_MERGE:
 					case self::XML_OVERWRITE:
-						if ($format == self::XML_MERGE) {
+						if ($format === self::XML_MERGE) {
 							if (count($node->children()) > 0) {
 								$data = $data + self::xmlToArray($node, $format);
 							} else {
