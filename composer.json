@@ -1,5 +1,5 @@
 {
-	"name": "mjohnson/type_converter",
+	"name": "mjohnson/type-converter",
 	"type": "library",
 	"description": "Converts one resource to another (XML, JSON, Object, Array, Serialization).",
 	"keywords": ["type", "converter"],
@@ -18,6 +18,6 @@
 		"source": "https://github.com/milesj/php-type_converter"
 	},
 	"autoload": {
-		"psr-0": { "TypeConverter": "type_converter" }
+		"psr-0": { "mjohnson\\TypeConverter": "" }
 	}
 }
