@@ -1,36 +1,32 @@
 <?php
 /**
- * Type Converter
- *
- * A class that handles the detection and conversion of certain resource formats / content types into other formats.
- * The current formats are supported: XML, JSON, Array, Object, Serialized
- *
- * @author      Miles Johnson - http://milesj.me
- * @copyright   Copyright 2006-2011, Miles Johnson, Inc.
- * @license     http://opensource.org/licenses/mit-license.php - Licensed under The MIT License
- * @link        http://milesj.me/code/php/type-converter
+ * @copyright	Copyright 2006-2012, Miles Johnson - http://milesj.me
+ * @license		http://opensource.org/licenses/mit-license.php - Licensed under the MIT License
+ * @link		http://milesj.me/code/php/type-converter
  */
 
 // Turn on errors
 error_reporting(E_ALL);
 
 function debug($var) {
-	echo '<pre>'. print_r($var, true) .'</pre>';
+	echo '<pre>' . print_r($var, true) . '</pre>';
 }
 
 function dump($key, $value) {
-	echo $key .' ('. ($value ? 'true' : 'false') .') ';
+	echo $key . ' (' . ($value ? 'true' : 'false') . ') ';
 }
 
 // Include class
-include_once '../type_converter/TypeConverter.php';
+include_once '../TypeConverter.php';
+
+use \mjohnson\utility\TypeConverter;
 
 // Create variables
 $array	= array('is' => 'array');
 $json	= json_encode(array('is' => 'json'));
 $ser	= serialize(array('is' => 'serialize'));
 $xml	= '<?xml version="1.0" encoding="utf-8"?><root><is>xml</is></root>';
-$object	= new stdClass();
+$object	= new \stdClass();
 ?>
 
 <!DOCTYPE html>

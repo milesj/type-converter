@@ -1,17 +1,19 @@
 <?php
 /**
- * Type Converter
- *
+ * @copyright	Copyright 2006-2012, Miles Johnson - http://milesj.me
+ * @license		http://opensource.org/licenses/mit-license.php - Licensed under the MIT License
+ * @link		http://milesj.me/code/php/type-converter
+ */
+
+namespace mjohnson\utility;
+
+/**
  * A class that handles the detection and conversion of certain resource formats / content types into other formats.
  * The current formats are supported: XML, JSON, Array, Object, Serialized
  *
- * @version		1.4.1
- * @author      Miles Johnson - http://milesj.me
- * @copyright   Copyright 2006-2011, Miles Johnson, Inc.
- * @license     http://opensource.org/licenses/mit-license.php - Licensed under The MIT License
- * @link        http://milesj.me/code/php/type-converter
+ * @version	1.4.1
+ * @package	mjohnson.utility
  */
-
 class TypeConverter {
 
 	/**
@@ -108,6 +110,7 @@ class TypeConverter {
 	 */
 	public static function isSerialized($data) {
 		$ser = @unserialize($data);
+
 		return ($ser !== false) ? $ser : false;
 	}
 
@@ -121,6 +124,7 @@ class TypeConverter {
 	 */
 	public static function isXml($data) {
 		$xml = @simplexml_load_string($data);
+
 		return ($xml instanceof SimpleXmlElement) ? $xml : false;
 	}
 
@@ -274,7 +278,7 @@ class TypeConverter {
 	 * @return object
 	 */
 	public static function buildObject($array) {
-		$obj = new stdClass();
+		$obj = new \stdClass();
 
 		foreach ($array as $key => $value) {
 			if (is_array($value)) {

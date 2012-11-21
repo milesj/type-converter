@@ -18,6 +18,7 @@
 		"source": "https://github.com/milesj/php-type_converter"
 	},
 	"autoload": {
-		"psr-0": { "mjohnson\\TypeConverter": "" }
-	}
+		"psr-0": { "mjohnson\\utility": "" }
+	},
+	"target-dir": "mjohnson/utility"
 }
