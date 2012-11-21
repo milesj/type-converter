@@ -11,7 +11,7 @@ namespace mjohnson\utility;
  * A class that handles the detection and conversion of certain resource formats / content types into other formats.
  * The current formats are supported: XML, JSON, Array, Object, Serialized
  *
- * @version	1.4.1
+ * @version	2.0.0
  * @package	mjohnson.utility
  */
 class TypeConverter {
