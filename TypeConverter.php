@@ -304,9 +304,9 @@ class TypeConverter {
 			foreach ($array as $key => $value) {
 				// XML_NONE
 				if (is_object($value)) {
-                    self::buildXml($xml, array('item' => self::toArray($value)));
+					self::buildXml($xml, array('item' => self::toArray($value)));
 					continue;
-                } elseif (!is_array($value)) {
+				} elseif (!is_array($value)) {
 					$xml->addChild($key, $value);
 					continue;
 				}
