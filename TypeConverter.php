@@ -37,6 +37,14 @@ class TypeConverter {
 	const XML_OVERWRITE = 3;
 
 	/**
+	 * Tracks the recursion level of buildXML();
+	 *
+	 * @var int
+	 * @static
+	 */
+	private static $xml_depth = 0;
+
+	/**
 	 * Returns a string for the detected type.
 	 *
 	 * @access public
@@ -229,10 +237,12 @@ class TypeConverter {
 	 * @access public
 	 * @param mixed $resource
 	 * @param string $root
+	 * @param string|array $tags String or array of wrapping tags when
+	 *		converting indexed array of object to XML.
 	 * @return string (xml)
 	 * @static
 	 */
-	public static function toXml($resource, $root = 'root') {
+	public static function toXml($resource, $root = 'root', $tags = 'item') {
 		if (self::isXml($resource)) {
 			return $resource;
 		}
@@ -241,7 +251,7 @@ class TypeConverter {
 
 		if (!empty($array)) {
 			$xml = simplexml_load_string('<?xml version="1.0" encoding="utf-8"?><'. $root .'></'. $root .'>');
-			$response = self::buildXml($xml, $array);
+			$response = self::buildXml($xml, $array, $tags);
 
 			return $response->asXML();
 		}
@@ -297,14 +307,22 @@ class TypeConverter {
 	 * @access public
 	 * @param object $xml
 	 * @param array $array
+	 * @param string|array $tags String or array of wrapping tags when
+	 *		converting indexed array of object to XML.
 	 * @return object
 	 */
-	public static function buildXml(&$xml, $array) {
+	public static function buildXml(&$xml, $array, $tags = 'item') {
+		self::$xml_depth++;
 		if (is_array($array)) {
 			foreach ($array as $key => $value) {
 				// XML_NONE
 				if (is_object($value)) {
-					self::buildXml($xml, array('item' => self::toArray($value)));
+					if (is_array($tags)) {
+						$subkey = $tags[self::$xml_depth - 1];
+					} else {
+						$subkey = $tags;
+					}
+					self::buildXml($xml, array($subkey => self::toArray($value)));
 					continue;
 				} elseif (!is_array($value)) {
 					$xml->addChild($key, $value);
@@ -367,7 +385,7 @@ class TypeConverter {
 				}
 			}
 		}
-
+		self::$xml_depth--;
 		return $xml;
 	}
 
