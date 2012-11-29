@@ -119,7 +119,7 @@ class TypeConverter {
 	public static function isSerialized($data) {
 		$ser = @unserialize($data);
 
-		return ($ser !== false) ? $ser : false;
+		return $ser !== false;
 	}
 
 	/**
@@ -131,9 +131,7 @@ class TypeConverter {
 	 * @static
 	 */
 	public static function isXml($data) {
-		$xml = @simplexml_load_string($data);
-
-		return ($xml instanceof SimpleXmlElement) ? $xml : false;
+		return is_a($data, 'SimpleXMLElement');
 	}
 
 	/**
@@ -154,11 +152,11 @@ class TypeConverter {
 		} else if (self::isJson($resource)) {
 			return json_decode($resource, true);
 
-		} else if ($ser = self::isSerialized($resource)) {
-			return self::toArray($ser);
+		} else if (self::isSerialized($resource)) {
+			return self::toArray(@unserialize($resource));
 
-		} else if ($xml = self::isXml($resource)) {
-			return self::xmlToArray($xml);
+		} else if (self::isXml($resource)) {
+			return self::xmlToArray($resource);
 		}
 
 		return $resource;
