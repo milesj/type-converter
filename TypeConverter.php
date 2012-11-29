@@ -242,7 +242,7 @@ class TypeConverter {
 	 */
 	public static function toXml($resource, $root = 'root', $tags = 'item') {
 		if (self::isXml($resource)) {
-			return $resource;
+			return $resource->asXML();
 		}
 
 		$array = self::toArray($resource);
