@@ -327,7 +327,7 @@ class TypeConverter {
 			if (is_object($value)) {
 				$value = self::toArray($value);
 			} elseif (!is_array($value)) {
-				$xml->addChild($key, $value);
+				$xml->addChild($key, htmlentities($value));
 				continue;
 			}
 
@@ -340,7 +340,7 @@ class TypeConverter {
 					$node = $xml->addChild($key);
 					self::buildXml($node, $value['value'], $tags);
 				} else {
-					$node = $xml->addChild($key, $value['value']);
+					$node = $xml->addChild($key, htmlentities($value['value']));
 				}
 				unset($value['value']);
 			} else {
@@ -361,7 +361,7 @@ class TypeConverter {
 				if (is_array($aValue) || is_object($aValue)) {
 					self::buildXml($node, array($aKey => $aValue), $tags);
 				} else {
-					$node->addChild($aKey, $aValue);
+					$node->addChild($aKey, htmlentities($aValue));
 				}
 			}
 		}
