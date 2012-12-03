@@ -37,6 +37,14 @@ class TypeConverter {
 	const XML_OVERWRITE = 3;
 
 	/**
+	 * Tracks the recursion level of buildXML();
+	 *
+	 * @var int
+	 * @static
+	 */
+	private static $xml_depth = 0;
+
+	/**
 	 * Returns a string for the detected type.
 	 *
 	 * @access public
@@ -111,7 +119,7 @@ class TypeConverter {
 	public static function isSerialized($data) {
 		$ser = @unserialize($data);
 
-		return ($ser !== false) ? $ser : false;
+		return $ser !== false;
 	}
 
 	/**
@@ -123,9 +131,7 @@ class TypeConverter {
 	 * @static
 	 */
 	public static function isXml($data) {
-		$xml = @simplexml_load_string($data);
-
-		return ($xml instanceof SimpleXmlElement) ? $xml : false;
+		return is_a($data, 'SimpleXMLElement');
 	}
 
 	/**
@@ -146,11 +152,11 @@ class TypeConverter {
 		} else if (self::isJson($resource)) {
 			return json_decode($resource, true);
 
-		} else if ($ser = self::isSerialized($resource)) {
-			return self::toArray($ser);
+		} else if (self::isSerialized($resource)) {
+			return self::toArray(@unserialize($resource));
 
-		} else if ($xml = self::isXml($resource)) {
-			return self::xmlToArray($xml);
+		} else if (self::isXml($resource)) {
+			return self::xmlToArray($resource);
 		}
 
 		return $resource;
@@ -229,19 +235,21 @@ class TypeConverter {
 	 * @access public
 	 * @param mixed $resource
 	 * @param string $root
+	 * @param string|array $tags String or array of wrapping tags when
+	 *		converting indexed array of object to XML.
 	 * @return string (xml)
 	 * @static
 	 */
-	public static function toXml($resource, $root = 'root') {
+	public static function toXml($resource, $root = 'root', $tags = 'item') {
 		if (self::isXml($resource)) {
-			return $resource;
+			return $resource->asXML();
 		}
 
 		$array = self::toArray($resource);
 
 		if (!empty($array)) {
 			$xml = simplexml_load_string('<?xml version="1.0" encoding="utf-8"?><'. $root .'></'. $root .'>');
-			$response = self::buildXml($xml, $array);
+			$response = self::buildXml($xml, $array, $tags);
 
 			return $response->asXML();
 		}
@@ -295,76 +303,69 @@ class TypeConverter {
 	 * Turn an array into an XML document. Alternative to array_map magic.
 	 *
 	 * @access public
-	 * @param object $xml
-	 * @param array $array
+	 * @param SimpleXMLElement $xml
+	 * @param mixed $data
+	 * @param string|array $tags String or array of wrapping tags when
+	 *		converting indexed array of object to XML.
 	 * @return object
 	 */
-	public static function buildXml(&$xml, $array) {
-		if (is_array($array)) {
-			foreach ($array as $key => $value) {
-				// XML_NONE
-				if (!is_array($value)) {
-					$xml->addChild($key, $value);
-					continue;
-				}
+	public static function buildXml(\SimpleXMLElement $xml, $data, $tags = 'item')
+	{
+		self::$xml_depth++;
+		if (is_array($tags)) {
+			// Stay within the bounds of the $tags array
+			$index = min(array(self::$xml_depth, count($tags))) - 1;
+			$tag = $tags[$index];
+		} else {
+			$tag = $tags;
+		}
 
-				// Multiple nodes of the same name
-				if (isset($value[0])) {
-					foreach ($value as $kValue) {
-						if (is_array($kValue)) {
-							self::buildXml($xml, array($key => $kValue));
-						} else {
-							$xml->addChild($key, $kValue);
-						}
-					}
+		foreach ($data as $key => $value) {
+			if (is_int($key)) {
+				$key = $tag;
+			}
+			if (is_object($value)) {
+				$value = self::toArray($value);
+			} elseif (!is_array($value)) {
+				$xml->addChild($key, htmlentities($value));
+				continue;
+			}
 
-				// XML_GROUP
-				} else if (isset($value['attributes'])) {
-					if (is_array($value['value'])) {
-						$node = $xml->addChild($key);
-						self::buildXml($node, $value['value']);
-					} else {
-						$node = $xml->addChild($key, $value['value']);
-					}
+			// At this point, value is an array - special keys are "attributes"
+			// and "value", so we need to handle them.
 
-					if (!empty($value['attributes'])) {
-						foreach ($value['attributes'] as $aKey => $aValue) {
-							$node->addAttribute($aKey, $aValue);
-						}
-					}
-
-				// XML_MERGE
-				} else if (isset($value['value'])) {
-					$node = $xml->addChild($key, $value['value']);
-					unset($value['value']);
-
-					if (!empty($value)) {
-						foreach ($value as $aKey => $aValue) {
-							if (is_array($aValue)) {
-								self::buildXml($node, array($aKey => $aValue));
-							} else {
-								$node->addAttribute($aKey, $aValue);
-							}
-						}
-					}
-
-				// XML_OVERWRITE
-				} else {
+			// Set value if it explicitely exists
+			if (isset($value['value'])) {
+				if (is_array($value['value'])) {
 					$node = $xml->addChild($key);
+					self::buildXml($node, $value['value'], $tags);
+				} else {
+					$node = $xml->addChild($key, htmlentities($value['value']));
+				}
+				unset($value['value']);
+			} else {
+				// Add a node, if there was no explicit value
+				$node = $xml->addChild($key);
+			}
 
-					if (!empty($value)) {
-						foreach ($value as $aKey => $aValue) {
-							if (is_array($aValue)) {
-								self::buildXml($node, array($aKey => $aValue));
-							} else {
-								$node->addChild($aKey, $aValue);
-							}
-						}
-					}
+			// Set attributes, if they explictely exist
+			if (isset($value['attributes'])) {
+				foreach($value['attributes'] as $aKey => $aValue) {
+					$node->addAttribute($aKey, $aValue);
+				}
+				unset($value['attributes']);
+			}
+
+			// Handle standard value and recursion
+			foreach ($value as $aKey => $aValue) {
+				if (is_array($aValue) || is_object($aValue)) {
+					self::buildXml($node, array($aKey => $aValue), $tags);
+				} else {
+					$node->addChild($aKey, htmlentities($aValue));
 				}
 			}
 		}
-
+		self::$xml_depth--;
 		return $xml;
 	}
 
