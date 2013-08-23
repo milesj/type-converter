@@ -15,7 +15,7 @@
 		"php": ">=5.2"
 	},
 	"support": {
-		"source": "https://github.com/milesj/php-type_converter"
+		"source": "https://github.com/milesj/type-converter"
 	},
 	"autoload": {
 		"psr-0": { "mjohnson\\utility": "" }
